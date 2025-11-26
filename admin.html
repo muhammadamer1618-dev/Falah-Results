@@ -308,6 +308,34 @@ var firebaseConfig = {
   appId: "1:241421115694:web:96f55fd9fd1d5b18b31abf"
 };
 firebase.initializeApp(firebaseConfig);
+  // Auto-add Manager account if missing
+async function ensureManagerExists(){
+  const email = "manager2026@gmail.com";
+
+  const userRef = db.collection("users").doc(email);
+  const supRef  = db.collection("supervisors").doc(email);
+
+  let userDoc = await userRef.get();
+  if(!userDoc.exists){
+    await userRef.set({
+      name: "مدير الإشراف",
+      role: "manager",
+      password: "010096"
+    });
+  }
+
+  let supDoc = await supRef.get();
+  if(!supDoc.exists){
+    await supRef.set({
+      name: "مدير الإشراف",
+      email: email,
+      teachers: []
+    });
+  }
+}
+
+// Run the function automatically
+ensureManagerExists();
 var db=firebase.firestore();
 
 var gradesList=[
