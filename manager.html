@@ -4,27 +4,124 @@
 <meta charset="UTF-8">
 <title>مدير الإشراف - نظام راصد</title>
 <link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
-
+<button class="btn-secondary" onclick="location='change_password.html'">
+  تغيير كلمة المرور
+</button>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:Calibri;background:#f4f4f4;margin:0}
-.header{background:#1976d2;color:#fff;text-align:center;padding:15px}
-.header h1{margin:0;font-size:24px}
-.header h2{margin:5px 0 0;font-size:18px;color:#ffeb3b}
 
-.container{max-width:1100px;margin:20px auto;padding:10px}
-.box{background:#fff;border-radius:10px;padding:15px;
-     margin-bottom:15px;box-shadow:0 0 8px rgba(0,0,0,0.1)}
-h3{margin-top:0;color:#1976d2}
-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
-th,td{border:1px solid #ccc;text-align:center;padding:5px}
-th{background:#1976d2;color:#fff}
-tr:nth-child(even){background:#f9f9f9}
+body{
+  font-family:Calibri;
+  background:#f4f4f4;
+  margin:0;
+}
 
-.badge{display:inline-block;padding:4px 7px;border-radius:10px;background:#e3f2fd;color:#0d47a1}
-.btn-secondary{background:#757575;color:#fff;padding:7px 15px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
+.header{
+  background:#1976d2;
+  color:#fff;
+  text-align:center;
+  padding:15px;
+}
+
+.header h1{
+  margin:0;
+  font-size:26px;
+  letter-spacing:1px;
+}
+
+.header h2{
+  margin:5px 0 0;
+  font-size:20px;
+  font-weight:bold;
+  color:#ffeb3b;
+}
+
+.container{
+  max-width:1100px;
+  margin:20px auto;
+  padding:10px;
+}
+
+.box{
+  background:#fff;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 0 12px rgba(0,0,0,0.12);
+}
+
+h3{
+  margin-top:0;
+  color:#1976d2;
+  font-size:20px;
+  font-weight:bold;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:15px;
+}
+
+th,td{
+  border:1px solid #ccc;
+  text-align:center;
+  padding:7px;
+}
+
+th{
+  background:#1976d2;
+  color:#fff;
+  font-size:15px;
+}
+
+tr:nth-child(even){
+  background:#f9f9f9;
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:10px;
+  background:#e3f2fd;
+  color:#0d47a1;
+  font-size:15px;
+  margin-right:6px;
+}
+
+.btn-secondary{
+  background:#757575;
+  color:#fff;
+  padding:8px 17px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:bold;
+}
+
+select{
+  padding:8px;
+  width:100%;
+  border-radius:6px;
+  border:1px solid #888;
+  margin-top:5px;
+}
+
+.option-btn{
+  background:#1976d2;
+  color:#fff;
+  padding:6px 12px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:bold;
+}
+
 </style>
 </head>
 <body>
@@ -36,39 +133,74 @@ tr:nth-child(even){background:#f9f9f9}
 
 <div class="container">
 
+  <!-- بيانات المستخدم -->
   <div class="box">
-    <h3>بيانات المستخدم</h3>
-    <div>الاسم: <span id="m_name" class="badge">—</span></div>
-    <div>البريد: <span id="m_email" class="badge">—</span></div>
+    <h3>بيانات مدير الإشراف</h3>
+
+    <table>
+      <tr>
+        <th>الاسم</th>
+        <th>اسم المستخدم</th>
+      </tr>
+      <tr>
+        <td><span id="m_name">—</span></td>
+        <td><span id="m_email">—</span></td>
+      </tr>
+    </table>
+
   </div>
 
+  <!-- جميع المشرفين -->
   <div class="box">
     <h3>المشرفون في النظام</h3>
+
     <table>
       <thead>
-        <tr><th>الاسم</th><th>البريد</th><th>عدد المعلمين</th><th>عرض</th></tr>
+        <tr>
+          <th>الاسم</th>
+          <th>اسم المستخدم</th>
+          <th>عدد المعلمين</th>
+          <th>عرض</th>
+        </tr>
       </thead>
       <tbody id="supervisors_body"></tbody>
     </table>
   </div>
 
+  <!-- تفاصيل المشرف -->
   <div class="box">
-    <h3>تفاصيل المشرف المختار</h3>
+    <h3>تفاصيل المشرف</h3>
+
     <div id="sup_info" class="badge">—</div>
+
     <table id="teachers_table" style="display:none">
       <thead>
-        <tr><th>المعلم</th><th>البريد</th><th>الفصول</th><th>عرض الفصول</th></tr>
+        <tr>
+          <th>المعلم</th>
+          <th>اسم المستخدم</th>
+          <th>الفصول</th>
+          <th>عرض الفصول</th>
+        </tr>
       </thead>
       <tbody id="teachers_body"></tbody>
     </table>
   </div>
 
+  <!-- طلاب الفصل -->
   <div class="box">
     <h3>طلاب الفصل</h3>
+
     <div id="class_info" class="badge">—</div>
+
     <table id="students_table" style="display:none">
       <thead>
-        <tr><th>الكود</th><th>الاسم</th><th>الصف</th><th>الشعبة</th><th>الدرجات</th></tr>
+        <tr>
+          <th>الكود</th>
+          <th>الاسم</th>
+          <th>الصف</th>
+          <th>الشعبة</th>
+          <th>الدرجات</th>
+        </tr>
       </thead>
       <tbody id="students_body"></tbody>
     </table>
@@ -94,6 +226,7 @@ firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore();
 
 
+/* حماية الصفحة */
 function guard(){
   let r=localStorage.getItem("currentUserRole");
   if(r!=="manager"){
@@ -103,22 +236,19 @@ function guard(){
 }
 guard();
 
-document.getElementById("m_email").innerText=
+/* تحميل بيانات المدير */
+document.getElementById("m_email").innerText =
   localStorage.getItem("currentUserEmail")||"—";
-document.getElementById("m_name").innerText=
+
+document.getElementById("m_name").innerText =
   localStorage.getItem("currentUserName")||"—";
 
 
-/* جلب المشرفين */
+/* تحميل المشرفين */
 async function loadSupervisors(){
   let snap=await db.collection("supervisors").get();
   let tbody=document.getElementById("supervisors_body");
   tbody.innerHTML="";
-
-  if(snap.empty){
-    tbody.innerHTML="<tr><td colspan='4'>لا يوجد مشرفون</td></tr>";
-    return;
-  }
 
   snap.forEach(doc=>{
     let s=doc.data();
@@ -129,7 +259,7 @@ async function loadSupervisors(){
       "<td>"+s.name+"</td>"+
       "<td>"+s.email+"</td>"+
       "<td>"+count+"</td>"+
-      "<td><button onclick='viewSupervisor(\""+s.email+"\")'>عرض</button></td>";
+      "<td><button class='option-btn' onclick='viewSupervisor(\""+s.email+"\")'>عرض</button></td>";
     tbody.appendChild(tr);
   });
 }
@@ -142,7 +272,8 @@ async function viewSupervisor(email){
   if(!d.exists)return;
 
   let s=d.data();
-  document.getElementById("sup_info").innerText=
+
+  document.getElementById("sup_info").innerText =
     "المشرف: "+s.name+" ("+s.email+")";
 
   let tbody=document.getElementById("teachers_body");
@@ -166,7 +297,7 @@ async function viewSupervisor(email){
         "<td>"+t.name+"</td>"+
         "<td>"+t.email+"</td>"+
         "<td>"+(ass||"—")+"</td>"+
-        "<td><button onclick='viewTeacher(\""+t.email+"\")'>عرض الفصول</button></td>";
+        "<td><button class='option-btn' onclick='viewTeacher(\""+t.email+"\")'>عرض</button></td>";
       tbody.appendChild(tr);
     }
   }
@@ -184,23 +315,24 @@ async function viewTeacher(email){
     return;
   }
 
-  let txt="اختر فصل:\n";
-  t.assignments.forEach((a,i)=>{
-    txt+=(i+1)+") "+a.grade+"-"+a.section+"-"+a.subject+"\n";
-  });
+  /* قائمة منسدلة بدل prompt */
+  let selector=document.createElement("div");
+  selector.innerHTML = `<select id='classSelect' style='padding:8px;font-size:15px;width:250px;margin:10px 0'>
+    ${t.assignments.map((a,i)=>`<option value='${i}'>${a.grade} - ${a.section} - ${a.subject}</option>`).join("")}
+  </select>
+  <button class='option-btn' onclick='chooseClass(${JSON.stringify(email)})'>اختيار</button>`;
 
-  let n=prompt(txt);
-  if(!n)return;
-
-  let idx=parseInt(n)-1;
-  if(idx<0 || idx>=t.assignments.length){
-    alert("خيار غير صحيح");
-    return;
-  }
-
-  let a=t.assignments[idx];
-  loadStudents(a, t);
+  document.getElementById("sup_info").appendChild(selector);
 }
+
+/* استكمال اختيار الفصل */
+async function chooseClass(email){
+  let tDoc=await db.collection("teachers").doc(email).get();
+  let t=tDoc.data();
+  let idx=document.getElementById("classSelect").value;
+  loadStudents(t.assignments[idx], t);
+}
+
 
 async function loadStudents(assign, teacher){
   document.getElementById("class_info").innerText =
@@ -242,6 +374,7 @@ async function loadStudents(assign, teacher){
     tbody.appendChild(tr);
   });
 }
+
 </script>
 
 </body>
