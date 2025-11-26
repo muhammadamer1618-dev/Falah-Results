@@ -2,37 +2,116 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام راصد - A · R · S</title>
+<title>نظام راصد - M.A.R.S</title>
 <link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&family=Cairo:wght@700&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <style>
-body{font-family:Calibri;background:#f4f4f4;margin:0}
+body{
+  font-family:Calibri;
+  margin:0;
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 40%, #c9e7ff 100%);
+  background-attachment: fixed;
+}
+
 .container{
-  max-width:500px;margin:50px auto;background:#fff;padding:20px;
-  border-radius:12px;box-shadow:0 0 12px rgba(0,0,0,0.15)
+  max-width:520px;
+  margin:60px auto;
+  background:#ffffffcc;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 0 18px rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
 }
-h1{text-align:center;color:#1976d2;margin-bottom:0;font-family:Cairo;font-size:32px}
-h2{text-align:center;color:#d32f2f;margin-top:4px;font-size:22px;font-weight:bold;font-family:Cairo}
 
-label{display:block;margin-top:10px;font-weight:bold}
+h1{
+  text-align:center;
+  color:#0056b3;
+  margin-bottom:0;
+  font-family:Cairo;
+  font-size:34px;
+  letter-spacing:1px;
+}
+
+h2{
+  text-align:center;
+  color:#d32f2f;
+  margin-top:4px;
+  font-size:30px;
+  font-weight:bold;
+  font-family: "Brush Script MT", cursive;
+  letter-spacing:3px;
+}
+
+h3{
+  text-align:center;
+  color:#333;
+  margin-top:4px;
+  font-size:17px;
+  font-weight:bold;
+  font-family:Cairo;
+}
+
+label{
+  display:block;
+  margin-top:10px;
+  font-weight:bold;
+}
+
 input,select{
-  width:100%;padding:8px;margin-top:5px;border-radius:6px;border:1px solid #999;
-  box-sizing:border-box;font-family:Calibri
+  width:100%;
+  padding:9px;
+  margin-top:5px;
+  border-radius:6px;
+  border:1px solid #888;
+  box-sizing:border-box;
+  font-size:16px;
 }
-button{
-  width:100%;margin-top:15px;padding:10px;border:none;border-radius:8px;
-  background:#1976d2;color:#fff;font-size:16px;font-weight:bold;cursor:pointer
-}
-button:hover{opacity:0.9}
 
-.role-box{display:flex;justify-content:space-between;margin-top:10px}
+button{
+  width:100%;
+  margin-top:18px;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#1976d2;
+  color:#fff;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+button:hover{
+  opacity:0.85;
+  transform:scale(1.02);
+}
+
+.role-box{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px;
+}
 .role-box label{font-weight:normal}
 
-.footer{text-align:center;margin-top:15px;font-size:13px;color:#555}
-.badge{display:inline-block;padding:3px 8px;border-radius:10px;background:#e3f2fd;color:#0d47a1;font-size:12px;margin-top:8px}
+.footer{
+  text-align:center;
+  margin-top:20px;
+  font-size:13px;
+  color:#444;
+}
+
+.badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:10px;
+  background:#e3f2fd;
+  color:#0d47a1;
+  font-size:12px;
+  margin-top:8px;
+}
 
 .hidden{display:none}
 </style>
@@ -43,7 +122,8 @@ button:hover{opacity:0.9}
 <div class="container">
 
   <h1>نظام راصد</h1>
-  <h2>A · R · S</h2>
+  <h2>M.A.R.S</h2>
+  <h3>Muhammad Amer Result System</h3>
 
   <label>اختر نوع المستخدم</label>
   <div class="role-box">
@@ -53,19 +133,19 @@ button:hover{opacity:0.9}
     <label><input type="radio" name="role" value="student"> طالب</label>
   </div>
 
-  <!-- حقل اسم المستخدم -->
+  <!-- اسم المستخدم -->
   <div id="email_box">
     <label>اسم المستخدم</label>
-    <input id="email_input" placeholder="username">
+    <input id="email_input" placeholder="username@example.com">
   </div>
 
-  <!-- حقل كلمة المرور -->
+  <!-- كلمة المرور -->
   <div id="password_box">
     <label>كلمة المرور</label>
     <input id="password_input" type="password" placeholder="••••••••">
   </div>
 
-  <!-- كود الطالب يظهر فقط عندما يكون الدور طالب -->
+  <!-- كود الطالب -->
   <div id="student_code_box" class="hidden">
     <label>كود الطالب</label>
     <input id="student_code_input" placeholder="أدخل كود الطالب">
@@ -91,7 +171,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore();
 
-/* تغيير الحقول عند اختيار طالب */
+/* إظهار/إخفاء الحقول حسب نوع المستخدم */
 document.querySelectorAll('input[name="role"]').forEach(r=>{
   r.addEventListener("change",()=>{
     let role=document.querySelector('input[name="role"]:checked').value;
@@ -114,10 +194,7 @@ async function login(){
 
   if(role==="student"){
     let code=document.getElementById("student_code_input").value.trim();
-    if(!code){
-      alert("أدخل كود الطالب");
-      return;
-    }
+    if(!code){ alert("أدخل كود الطالب"); return; }
     localStorage.setItem("studentCode",code);
     location="student.html";
     return;
@@ -133,11 +210,11 @@ async function login(){
 
   try{
     var doc=await db.collection("users").doc(email).get();
-    if(!doc.exists){alert("المستخدم غير موجود");return;}
+    if(!doc.exists){ alert("المستخدم غير موجود"); return; }
 
     var data=doc.data()||{};
-    if(data.password!==password){alert("كلمة المرور غير صحيحة");return;}
-    if(data.role!==role){alert("نوع المستخدم لا يطابق الصلاحيات");return;}
+    if(data.password!==password){ alert("كلمة المرور غير صحيحة"); return; }
+    if(data.role!==role){ alert("نوع المستخدم لا يطابق الصلاحيات"); return; }
 
     localStorage.setItem("currentUserEmail", email);
     localStorage.setItem("currentUserRole", data.role);
@@ -148,7 +225,6 @@ async function login(){
     if(role==="teacher") location="teacher.html";
 
   }catch(e){
-    console.log(e);
     alert("خطأ أثناء تسجيل الدخول");
   }
 }
