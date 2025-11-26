@@ -36,12 +36,25 @@ tr:nth-child(even){background:#f9f9f9}
 .small-btn{padding:3px 6px;font-size:11px;border-radius:5px}
 .badge{display:inline-block;padding:2px 6px;border-radius:10px;font-size:11px;background:#e3f2fd;color:#0d47a1}
 .footer{text-align:center;font-size:12px;color:#555;margin-top:10px}
+
+/* scroll للأقسام الكبيرة */
+.table-wrapper{
+  max-height:350px;
+  overflow-y:auto;
+  margin-top:5px;
+}
+.table-wrapper-assign{
+  max-height:400px;
+  overflow-y:auto;
+  margin-top:5px;
+  border:2px solid #f44336;
+  border-radius:6px;
+  padding:3px;
+}
 </style>
 </head>
 <body>
-<button class="btn-secondary" onclick="location='change_password.html'">
-  تغيير كلمة المرور
-</button>
+
 <div class="header">
   <h1>مدارس الفلاح الأهلية</h1>
   <h2 id="header_exam">لوحة المشرف العام - نظام رصد الدرجات</h2>
@@ -77,20 +90,17 @@ tr:nth-child(even){background:#f9f9f9}
       </div>
     </div>
 
-<div style="max-height:400px; overflow-y:auto; border:1px solid #ccc; border-radius:8px;">
-  <table style="width:100%; border-collapse:collapse;">
-    <thead>
-      <tr style="background:#1976d2; color:white; position:sticky; top:0;">
-        <th>الكود</th>
-        <th>الاسم</th>
-        <th>الصف</th>
-        <th>الشعبة</th>
-        <th>إجراءات</th>
-      </tr>
-    </thead>
-    <tbody id="students_body"></tbody>
-  </table>
-</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>الكود</th><th>الاسم</th><th>الصف</th><th>الشعبة</th><th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="students_body"></tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- عمليات جماعية للطلاب -->
   <div class="box">
@@ -176,47 +186,43 @@ tr:nth-child(even){background:#f9f9f9}
     <h3>إدارة المعلمين</h3>
     <div class="row">
       <div class="col-3"><label>اسم المعلم</label><input id="t_name"></div>
-      <div class="col-3"><label>البريد (يوصل للدخول)</label><input id="t_email"></div>
+      <div class="col-3"><label>اسم المستخدم</label><input id="t_email"></div>
       <div class="col-3"><label>كلمة المرور</label><input id="t_password"></div>
       <div class="col-3" style="display:flex;align-items:flex-end">
         <button class="btn-primary" style="width:100%" onclick="addTeacher()">إضافة / تعديل معلم</button>
       </div>
     </div>
 
-<div style="max-height:450px; overflow-y:auto; border:1px solid #bbb; border-radius:10px; margin-top:15px;">
-  <table style="width:100%; border-collapse:collapse; font-size:13px;">
-    <thead style="position:sticky; top:0; background:#1976d2; color:#fff; z-index:10;">
-      <tr>
-        <th style="padding:6px;">الكود</th>
-        <th style="padding:6px;">الاسم</th>
-        <th style="padding:6px;">الصف</th>
-        <th style="padding:6px;">الشعبة</th>
-        <th style="padding:6px;">الإجراءات</th>
-      </tr>
-    </thead>
-
-    <tbody id="students_body"></tbody>
-  </table>
-</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>الاسم</th><th>اسم المستخدم</th><th>عدد الفصول المسندة</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="teachers_body"></tbody>
+      </table>
+    </div>
+  </div>
 
   <!-- إدارة المشرفين -->
   <div class="box">
     <h3>إدارة المشرفين</h3>
     <div class="row">
       <div class="col-3"><label>اسم المشرف</label><input id="s_name"></div>
-      <div class="col-3"><label>البريد</label><input id="s_email"></div>
+      <div class="col-3"><label>اسم المستخدم</label><input id="s_email"></div>
       <div class="col-3"><label>كلمة المرور</label><input id="s_password"></div>
       <div class="col-3" style="display:flex;align-items:flex-end">
         <button class="btn-primary" style="width:100%" onclick="addSupervisor()">إضافة / تعديل مشرف</button>
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr><th>الاسم</th><th>البريد</th><th>عدد المعلمين</th><th>إجراءات</th></tr>
-      </thead>
-      <tbody id="supervisors_body"></tbody>
-    </table>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>الاسم</th><th>اسم المستخدم</th><th>عدد المعلمين</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="supervisors_body"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- إسناد فصول للمعلم -->
@@ -242,12 +248,14 @@ tr:nth-child(even){background:#f9f9f9}
     </div>
     <button class="btn-primary" style="margin-top:8px" onclick="addTeacherAssignment()">إضافة إسناد</button>
 
-    <table>
-      <thead>
-        <tr><th>المعلم</th><th>الصف</th><th>الشعبة</th><th>المادة</th></tr>
-      </thead>
-      <tbody id="assignments_body"></tbody>
-    </table>
+    <div class="table-wrapper-assign">
+      <table>
+        <thead>
+          <tr><th>المعلم</th><th>الصف</th><th>الشعبة</th><th>المادة</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="assignments_body"></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- إسناد معلمين لمشرف -->
@@ -265,6 +273,16 @@ tr:nth-child(even){background:#f9f9f9}
       <div class="col-4" style="display:flex;align-items:flex-end">
         <button class="btn-primary" style="width:100%" onclick="linkTeacherToSupervisor()">إضافة المعلم للمشرف</button>
       </div>
+    </div>
+
+    <!-- جدول روابط المشرف/المعلم مع إمكانية حذف الإسناد -->
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>المشرف</th><th>المعلم</th><th>إجراءات</th></tr>
+        </thead>
+        <tbody id="sup_links_body"></tbody>
+      </table>
     </div>
   </div>
 
@@ -323,7 +341,10 @@ async function loadSettingsExam(){
     if(set.exists){
       examType=set.data().examType||"";
       if(examType){
-        document.getElementById("header_exam").innerText="لوحة المشرف العام - "+examType;
+        document.getElementById("header_exam").inner
+
+
+Text="لوحة المشرف العام - "+examType;
       }
     }
   }catch(e){console.log(e);}
@@ -681,7 +702,7 @@ async function addTeacher(){
   let email=document.getElementById("t_email").value.trim().toLowerCase();
   let password=document.getElementById("t_password").value.trim();
   if(!name||!email||!password){
-    alert("أدخل الاسم والبريد وكلمة المرور");
+    alert("أدخل الاسم واسم المستخدم وكلمة المرور");
     return;
   }
 
@@ -719,6 +740,8 @@ async function loadTeachers(){
   tbody.innerHTML="";
   if(!teachersCache.length){
     tbody.innerHTML="<tr><td colspan='4'>لا يوجد معلمون</td></tr>";
+    renderAssignmentsTable();
+    renderSupervisorLinks();
     return;
   }
 
@@ -734,6 +757,7 @@ async function loadTeachers(){
   });
 
   renderAssignmentsTable();
+  renderSupervisorLinks();
 }
 
 /* إدارة المشرفين */
@@ -742,7 +766,7 @@ async function addSupervisor(){
   let email=document.getElementById("s_email").value.trim().toLowerCase();
   let password=document.getElementById("s_password").value.trim();
   if(!name||!email||!password){
-    alert("أدخل الاسم والبريد وكلمة المرور");
+    alert("أدخل الاسم واسم المستخدم وكلمة المرور");
     return;
   }
 
@@ -780,6 +804,7 @@ async function loadSupervisors(){
   tbody.innerHTML="";
   if(!supervisorsCache.length){
     tbody.innerHTML="<tr><td colspan='4'>لا يوجد مشرفون</td></tr>";
+    renderSupervisorLinks();
     return;
   }
 
@@ -793,11 +818,14 @@ async function loadSupervisors(){
       "<td><button class='small-btn btn-danger' onclick='deleteSupervisor(\""+(s.email||"")+"\")'>حذف</button></td>";
     tbody.appendChild(tr);
   });
+
+  renderSupervisorLinks();
 }
 
 /* إسناد فصول للمعلم */
 function renderAssignmentsTable(){
   let tbody=document.getElementById("assignments_body");
+  if(!tbody)return;
   tbody.innerHTML="";
   teachersCache.forEach(t=>{
     let arr=t.assignments||[];
@@ -807,7 +835,8 @@ function renderAssignmentsTable(){
         "<td>"+(t.name||"")+"</td>"+
         "<td>"+(a.grade||"")+"</td>"+
         "<td>"+(a.section||"")+"</td>"+
-        "<td>"+(a.subject||"")+"</td>";
+        "<td>"+(a.subject||"")+"</td>"+
+        "<td><button class='small-btn btn-danger' onclick='deleteTeacherAssignment(\""+(t.email||"")+"\",\""+(a.grade||"")+"\",\""+(a.section||"")+"\",\""+(a.subject||"")+"\")'>حذف الإسناد</button></td>";
       tbody.appendChild(tr);
     });
   });
@@ -838,6 +867,22 @@ async function addTeacherAssignment(){
   loadTeachers();
 }
 
+async function deleteTeacherAssignment(email,grade,section,subject){
+  if(!confirm("حذف هذا الإسناد من المعلم؟"))return;
+  let ref=db.collection("teachers").doc(email);
+  let doc=await ref.get();
+  if(!doc.exists){
+    alert("المعلم غير موجود");
+    return;
+  }
+  let t=doc.data()||{};
+  let arr=(t.assignments||[]).filter(a=>!(a.grade===grade && a.section===section && a.subject===subject));
+  await ref.set({assignments:arr},{merge:true});
+  alert("تم حذف الإسناد");
+  loadTeachers();
+}
+
+/* إسناد معلمين لمشرف */
 async function linkTeacherToSupervisor(){
   let supEmail=document.getElementById("link_supervisor_select").value;
   let tEmail=document.getElementById("link_teacher_select").value;
@@ -859,6 +904,41 @@ async function linkTeacherToSupervisor(){
   loadSupervisors();
 }
 
+async function unlinkTeacherFromSupervisor(supEmail,tEmail){
+  if(!confirm("حذف هذا الإسناد بين المشرف والمعلم؟"))return;
+  let ref=db.collection("supervisors").doc(supEmail);
+  let doc=await ref.get();
+  if(!doc.exists){
+    alert("المشرف غير موجود");
+    return;
+  }
+  let s=doc.data()||{};
+  let arr=(s.teachers||[]).filter(e=>e!==tEmail);
+  await ref.set({teachers:arr},{merge:true});
+  alert("تم حذف الإسناد");
+  loadSupervisors();
+}
+
+function renderSupervisorLinks(){
+  let tbody=document.getElementById("sup_links_body");
+  if(!tbody)return;
+  tbody.innerHTML="";
+  supervisorsCache.forEach(s=>{
+    let arr=s.teachers||[];
+    arr.forEach(tEmail=>{
+      let teacher=teachersCache.find(t=>t.email===tEmail);
+      let tName=teacher? teacher.name:tEmail;
+      let tr=document.createElement("tr");
+      tr.innerHTML=
+        "<td>"+(s.name||"")+" ("+(s.email||"")+")</td>"+
+        "<td>"+(tName||"")+" ("+tEmail+")</td>"+
+        "<td><button class='small-btn btn-danger' onclick='unlinkTeacherFromSupervisor(\""+(s.email||"")+"\",\""+tEmail+"\")'>حذف الإسناد</button></td>";
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+/* تحميل القوائم من المعلمين والمشرفين */
 async function loadSelectorsFromTeachersSupervisors(){
   let at=document.getElementById("assign_teacher_select");
   let ls_t=document.getElementById("link_teacher_select");
