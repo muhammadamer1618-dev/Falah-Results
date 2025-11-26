@@ -48,7 +48,6 @@ th{background:#1976d2;color:white;font-size:17px}
   <h1>مدارس الفلاح الأهلية</h1>
   <h2 id="exam_type">—</h2>
 
-  <!-- Student info -->
   <table id="student_info" style="display:none;">
     <tr><th>البيان</th><th>القيمة</th></tr>
     <tr><td class="red">اسم الطالب</td><td id="st_name" class="blue"></td></tr>
@@ -57,7 +56,6 @@ th{background:#1976d2;color:white;font-size:17px}
     <tr><td class="red">الشعبة</td><td id="st_section" class="blue"></td></tr>
   </table>
 
-  <!-- Subjects table -->
   <table id="subjects_table" style="display:none;">
     <thead>
       <tr>
@@ -66,13 +64,11 @@ th{background:#1976d2;color:white;font-size:17px}
         <th>الدرجة النهائية</th>
         <th>النسبة</th>
         <th>التقدير</th>
-        <th>الملاحظة</th>
       </tr>
     </thead>
     <tbody id="subjects_body"></tbody>
   </table>
 
-  <!-- Summary table -->
   <table id="summary_table" style="display:none;">
     <tr><th>المجموع الكلي</th><th>التقدير العام</th></tr>
     <tr>
@@ -81,13 +77,11 @@ th{background:#1976d2;color:white;font-size:17px}
     </tr>
   </table>
 
-  <!-- Supervisor sign -->
   <table id="supervisor_table" style="display:none;margin-top:20px;">
     <tr><th>رئيس الإشراف التربوي</th></tr>
     <tr><td class="blue">أحمد سمير عباس</td></tr>
   </table>
 
-  <!-- Manager sign -->
   <table id="manager_table" style="display:none;margin-top:20px;">
     <tr><th>مدير المدرسة</th></tr>
     <tr><td class="blue">سعيد بن علي الجمعان</td></tr>
@@ -131,7 +125,11 @@ async function loadStudent(){
 
   let d=doc.data();
 
-  document.getElementById("exam_type").innerText=d.examType||"—";
+  // load examType from general settings
+  let settings = await db.collection("settings").doc("general").get();
+  let examTypeValue = settings.exists ? (settings.data().examType || "—") : (d.examType || "—");
+
+  document.getElementById("exam_type").innerText = examTypeValue;
 
   document.getElementById("st_name").innerText=d.name||"";
   document.getElementById("st_code").innerText=d.code||"";
@@ -139,7 +137,6 @@ async function loadStudent(){
   document.getElementById("st_section").innerText=d.section||"";
   document.getElementById("student_info").style.display="table";
 
-  // get subjects template for this grade
   let grade=d.grade||"";
   let templateDoc=await db.collection("settings").doc("subjects_"+grade).get();
   let allowedSubjects=[];
@@ -161,7 +158,6 @@ async function loadStudent(){
     let f=subs[subName].fullMark||0;
     let p=f?((m/f)*100).toFixed(0):0;
     let r=getRate(p);
-    let note=subs[subName].note||"";
 
     total+=Number(m);
     totalFull+=Number(f);
@@ -173,8 +169,7 @@ async function loadStudent(){
       "<td>"+m+"</td>"+
       "<td>"+f+"</td>"+
       "<td>"+p+"%</td>"+
-      "<td>"+r+"</td>"+
-      "<td>"+note+"</td>";
+      "<td>"+r+"</td>";
     body.appendChild(tr);
   });
 
