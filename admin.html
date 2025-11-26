@@ -7,6 +7,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <style>
 body{font-family:Calibri;background:#f4f4f4;margin:0}
@@ -82,6 +83,55 @@ tr:nth-child(even){background:#f9f9f9}
       </thead>
       <tbody id="students_body"></tbody>
     </table>
+  </div>
+
+  <!-- عمليات جماعية للطلاب -->
+  <div class="box">
+    <h3>عمليات جماعية للطلاب</h3>
+
+    <div class="row">
+      <div class="col-6">
+        <label>استيراد الطلاب من ملف Excel (أعمدة: code, name, grade, section)</label>
+        <input type="file" id="excel_input" accept=".xlsx,.xls">
+      </div>
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-primary" style="width:100%" onclick="importStudentsFromExcel()">استيراد الطلاب</button>
+      </div>
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-danger" style="width:100%" onclick="deleteAllStudents()">حذف جميع الطلاب</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="col-3">
+        <label>صف الفصل المراد حذف طلابه</label>
+        <select id="bulk_grade_delete_students"></select>
+      </div>
+      <div class="col-3">
+        <label>شعبة الفصل</label>
+        <select id="bulk_section_delete_students"></select>
+      </div>
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-danger" style="width:100%" onclick="deleteClassStudents()">حذف طلاب الفصل</button>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-secondary" style="width:100%" onclick="clearAllMarks()">تفريغ درجات كل الطلاب</button>
+      </div>
+      <div class="col-3">
+        <label>صف الفصل المراد تفريغ درجاته</label>
+        <select id="bulk_grade_clear_marks"></select>
+      </div>
+      <div class="col-3">
+        <label>شعبة الفصل</label>
+        <select id="bulk_section_clear_marks"></select>
+      </div>
+      <div class="col-3" style="display:flex;align-items:flex-end">
+        <button class="btn-secondary" style="width:100%" onclick="clearClassMarks()">تفريغ درجات الفصل</button>
+      </div>
+    </div>
   </div>
 
   <!-- رصد درجات صف كامل -->
@@ -268,8 +318,11 @@ function initSelectors(){
   var stg=document.getElementById("st_grade");
   var msg=document.getElementById("marks_grade");
   var asg=document.getElementById("assign_grade_select");
+  var bgDel=document.getElementById("bulk_grade_delete_students");
+  var bgMarks=document.getElementById("bulk_grade_clear_marks");
+
   gradesList.forEach(g=>{
-    [stg,msg,asg].forEach(sel=>{
+    [stg,msg,asg,bgDel,bgMarks].forEach(sel=>{
       let o=document.createElement("option");
       o.value=g;o.textContent=g;
       sel.appendChild(o);
@@ -277,24 +330,17 @@ function initSelectors(){
   });
 
   var stsec=document.getElementById("st_section");
-  sectionsList.forEach(s=>{
-    let o=document.createElement("option");
-    o.value=s;o.textContent=s;
-    stsec.appendChild(o);
-  });
-
   var msec=document.getElementById("marks_section");
-  sectionsList.forEach(s=>{
-    let o=document.createElement("option");
-    o.value=s;o.textContent=s;
-    msec.appendChild(o);
-  });
-
   var asec=document.getElementById("assign_section_select");
+  var bsDel=document.getElementById("bulk_section_delete_students");
+  var bsMarks=document.getElementById("bulk_section_clear_marks");
+
   sectionsList.forEach(s=>{
-    let o=document.createElement("option");
-    o.value=s;o.textContent=s;
-    asec.appendChild(o);
+    [stsec,msec,asec,bsDel,bsMarks].forEach(sel=>{
+      let o=document.createElement("option");
+      o.value=s;o.textContent=s;
+      sel.appendChild(o);
+    });
   });
 
   var asub=document.getElementById("assign_subject_select");
@@ -380,6 +426,135 @@ async function loadStudents(){
       "</td>";
     tbody.appendChild(tr);
   });
+}
+
+/* استيراد الطلاب من Excel */
+async function importStudentsFromExcel(){
+  let input=document.getElementById("excel_input");
+  if(!input.files.length){
+    alert("اختر ملف Excel أولاً");
+    return;
+  }
+  let file=input.files[0];
+  let reader=new FileReader();
+  reader.onload=async function(e){
+    try{
+      let data=new Uint8Array(e.target.result);
+      let workbook=XLSX.read(data,{type:"array"});
+      let sheetName=workbook.SheetNames[0];
+      let sheet=workbook.Sheets[sheetName];
+      let rows=XLSX.utils.sheet_to_json(sheet,{defval:""});
+
+      if(!rows.length){
+        alert("الملف لا يحتوي بيانات");
+        return;
+      }
+
+      let batch=db.batch();
+      rows.forEach(row=>{
+        let code=String(row.code||row.Code||row.CODE||"").trim();
+        let name=String(row.name||row.Name||row.NAME||"").trim();
+        let grade=String(row.grade||row.Grade||row.GRADE||"").trim();
+        let section=String(row.section||row.Section||row.SECTION||"").trim();
+        if(!code || !name)return;
+        let ref=db.collection("students").doc(code);
+        batch.set(ref,{
+          code:code,
+          name:name,
+          grade:grade,
+          section:section,
+          examType:examType||"",
+          subjects:{}
+        },{merge:true});
+      });
+
+      await batch.commit();
+      alert("تم استيراد الطلاب بنجاح");
+      loadStudents();
+    }catch(err){
+      console.log(err);
+      alert("حدث خطأ أثناء قراءة ملف Excel");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* حذف جميع الطلاب */
+async function deleteAllStudents(){
+  if(!confirm("هل أنت متأكد من حذف جميع الطلاب نهائياً؟"))return;
+  let snap=await db.collection("students").get();
+  if(snap.empty){
+    alert("لا يوجد طلاب");
+    return;
+  }
+  let batch=db.batch();
+  snap.forEach(doc=>batch.delete(doc.ref));
+  await batch.commit();
+  alert("تم حذف جميع الطلاب");
+  loadStudents();
+}
+
+/* حذف طلاب فصل معين */
+async function deleteClassStudents(){
+  let grade=document.getElementById("bulk_grade_delete_students").value;
+  let section=document.getElementById("bulk_section_delete_students").value;
+  if(!grade || !section){
+    alert("اختر الصف والشعبة");
+    return;
+  }
+  if(!confirm("حذف جميع طلاب "+grade+" / "+section+" ؟"))return;
+
+  let q=db.collection("students").where("grade","==",grade).where("section","==",section);
+  let snap=await q.get();
+  if(snap.empty){
+    alert("لا يوجد طلاب لهذا الفصل");
+    return;
+  }
+  let batch=db.batch();
+  snap.forEach(doc=>batch.delete(doc.ref));
+  await batch.commit();
+  alert("تم حذف طلاب الفصل المحدد");
+  loadStudents();
+}
+
+/* تفريغ درجات جميع الطلاب */
+async function clearAllMarks(){
+  if(!confirm("تفريغ جميع درجات الطلاب لكل المواد؟"))return;
+  let snap=await db.collection("students").get();
+  if(snap.empty){
+    alert("لا يوجد طلاب");
+    return;
+  }
+  let batch=db.batch();
+  snap.forEach(doc=>{
+    batch.set(doc.ref,{subjects:{}},{merge:true});
+  });
+  await batch.commit();
+  alert("تم تفريغ درجات جميع الطلاب");
+}
+
+/* تفريغ درجات فصل معين */
+async function clearClassMarks(){
+  let grade=document.getElementById("bulk_grade_clear_marks").value;
+  let section=document.getElementById("bulk_section_clear_marks").value;
+  if(!grade || !section){
+    alert("اختر الصف والشعبة");
+    return;
+  }
+  if(!confirm("تفريغ درجات فصل "+grade+" / "+section+" ؟"))return;
+
+  let q=db.collection("students").where("grade","==",grade).where("section","==",section);
+  let snap=await q.get();
+  if(snap.empty){
+    alert("لا يوجد طلاب لهذا الفصل");
+    return;
+  }
+  let batch=db.batch();
+  snap.forEach(doc=>{
+    batch.set(doc.ref,{subjects:{}},{merge:true});
+  });
+  await batch.commit();
+  alert("تم تفريغ درجات الفصل المحدد");
 }
 
 /* رصد صف كامل */
@@ -514,7 +689,6 @@ async function addTeacher(){
 async function deleteTeacher(email){
   if(!confirm("حذف المعلم؟"))return;
   await db.collection("teachers").doc(email).delete();
-  // لا نحذف المستخدم من users حتى لا نلخبط لو مستخدم لأدوار أخرى
   loadTeachers();
   loadSelectorsFromTeachersSupervisors();
 }
