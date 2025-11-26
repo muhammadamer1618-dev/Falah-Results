@@ -77,15 +77,20 @@ tr:nth-child(even){background:#f9f9f9}
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>الكود</th><th>الاسم</th><th>الصف</th><th>الشعبة</th><th>إجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="students_body"></tbody>
-    </table>
-  </div>
+<div style="max-height:400px; overflow-y:auto; border:1px solid #ccc; border-radius:8px;">
+  <table style="width:100%; border-collapse:collapse;">
+    <thead>
+      <tr style="background:#1976d2; color:white; position:sticky; top:0;">
+        <th>الكود</th>
+        <th>الاسم</th>
+        <th>الصف</th>
+        <th>الشعبة</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="students_body"></tbody>
+  </table>
+</div>
 
   <!-- عمليات جماعية للطلاب -->
   <div class="box">
