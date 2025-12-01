@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>نظام راصد - M.A.R.S</title>
+<title>نظام راصد - MARS</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&family=Cairo:wght@700&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -12,120 +13,115 @@
 body{
   font-family:Calibri;
   margin:0;
-  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 40%, #c9e7ff 100%);
-  background-attachment: fixed;
+  background:#f0f4ff;
 }
 
+/* ===== Container ===== */
 .container{
-  max-width:520px;
-  margin:60px auto;
-  background:#ffffffcc;
+  max-width:900px;
+  margin:40px auto;
+  background:#fff;
   padding:25px;
-  border-radius:15px;
-  box-shadow:0 0 18px rgba(0,0,0,0.15);
-  backdrop-filter: blur(4px);
+  border-radius:20px;
+  box-shadow:0 0 25px rgba(0,0,0,0.15);
 }
 
+/* ===== Title ===== */
 h1{
   text-align:center;
   color:#0056b3;
   margin-bottom:0;
   font-family:Cairo;
-  font-size:34px;
-  letter-spacing:1px;
+  font-size:40px;
+  font-weight:bold;
 }
 
 h2{
   text-align:center;
   color:#d32f2f;
-  margin-top:4px;
+  margin-top:5px;
   font-size:32px;
-  font-weight:bold;
-  font-family: "Brush Script MT", cursive;
+  font-family:"Brush Script MT", cursive;
   letter-spacing:3px;
 }
 
-.roles-box{
-  margin-top:20px;
+/* ===== Roles Grid ===== */
+.roles{
   display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:12px;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+  margin-top:30px
 }
 
-.role-card{
-  background:#fff;
-  padding:12px;
-  border-radius:10px;
+.role{
+  background:#eef3ff;
+  padding:15px;
+  border-radius:15px;
   text-align:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  box-shadow:0 3px 8px rgba(0,0,0,0.1);
   cursor:pointer;
-  transition:0.2s;
   font-weight:bold;
-  border:2px solid transparent;
-  font-size:15px;
+  transition:0.2s;
 }
-.role-card:hover{
-  transform:scale(1.04);
-  border-color:#1976d2;
-}
-
-.selected{
-  border-color:#1976d2 !important;
-  background:#e3f2fd !important;
+.role:hover{
+  transform:scale(1.07);
+  background:#dbe7ff;
 }
 
+.role input{
+  margin-top:10px;
+}
+
+/* ===== Inputs ===== */
 label{
   display:block;
   margin-top:15px;
+  font-size:17px;
   font-weight:bold;
 }
 
 input{
   width:100%;
   padding:9px;
+  border-radius:7px;
+  border:1px solid #777;
   margin-top:5px;
-  border-radius:6px;
-  border:1px solid #888;
-  box-sizing:border-box;
   font-size:16px;
 }
 
+/* ===== Button ===== */
 button{
   width:100%;
-  margin-top:18px;
+  margin-top:20px;
   padding:12px;
   border:none;
   border-radius:8px;
   background:#1976d2;
   color:#fff;
-  font-size:17px;
+  font-size:18px;
   font-weight:bold;
   cursor:pointer;
-  transition:0.2s;
 }
 button:hover{
-  opacity:0.85;
-  transform:scale(1.02);
+  opacity:0.9;
 }
 
-.hidden{display:none}
-
+/* footer */
 .footer{
   text-align:center;
   margin-top:20px;
-  font-size:13px;
+  font-size:14px;
   color:#444;
 }
-.badge{
-  display:inline-block;
-  padding:3px 8px;
-  border-radius:10px;
+.footer span{
   background:#e3f2fd;
+  padding:3px 10px;
+  border-radius:10px;
   color:#0d47a1;
-  font-size:12px;
-  margin-top:8px;
 }
+.hidden{display:none}
 </style>
+
 </head>
 
 <body>
@@ -135,89 +131,113 @@ button:hover{
   <h1>نظام راصد</h1>
   <h2>M . A . R . S</h2>
 
-  <!-- اختيار الدور -->
-  <div class="roles-box">
-    <div class="role-card" onclick="selectRole('superadmin')" id="card_superadmin">مشرف عام</div>
-    <div class="role-card" onclick="selectRole('supervisor')" id="card_supervisor">مشرف</div>
-    <div class="role-card" onclick="selectRole('teacher')" id="card_teacher">معلم</div>
-    <div class="role-card" onclick="selectRole('manager')" id="card_manager">مدير الإشراف</div>
+  <!-- Roles -->
+  <div class="roles">
+
+    <div class="role">
+      مدير النظام<br>
+      <input type="radio" name="role" value="superadmin">
+    </div>
+
+    <div class="role">
+      مدير الإشراف<br>
+      <input type="radio" name="role" value="manager">
+    </div>
+
+    <div class="role">
+      وكيل المدرسة<br>
+      <input type="radio" name="role" value="principal">
+    </div>
+
+    <div class="role">
+      مشرف<br>
+      <input type="radio" name="role" value="supervisor">
+    </div>
+
+    <div class="role">
+      موجه طلابي<br>
+      <input type="radio" name="role" value="counselor">
+    </div>
+
+    <div class="role">
+      معلم<br>
+      <input type="radio" name="role" value="teacher">
+    </div>
+
   </div>
 
-  <!-- اسم المستخدم -->
-  <div id="email_box">
-    <label>اسم المستخدم</label>
-    <input id="email_input" placeholder="example@school.com">
-  </div>
+  <!-- Username -->
+  <label>اسم المستخدم</label>
+  <input id="email_input" placeholder="User ID">
 
-  <!-- كلمة المرور -->
-  <div id="password_box">
-    <label>كلمة المرور</label>
-    <input id="password_input" type="password" placeholder="••••••••">
-  </div>
+  <!-- Password -->
+  <label>كلمة المرور</label>
+  <input id="password_input" type="password" placeholder="••••••••">
 
   <button onclick="login()">دخول</button>
 
   <div class="footer">
-    <span class="badge">تصميم محمد عامر أحمد</span>
-    <div style="margin-top:5px">الإصدار 2026</div>
+    <span>تصميم محمد عامر أحمد</span> — الإصدار 2026
   </div>
+
 </div>
 
 <script>
-var selectedRole="superadmin";
-
-function selectRole(r){
-  selectedRole=r;
-  document.querySelectorAll(".role-card").forEach(c=>c.classList.remove("selected"));
-  document.getElementById("card_"+r).classList.add("selected");
-}
-
-var firebaseConfig = {
-  apiKey: "AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
-  authDomain: "results2026-7c0dd.firebaseapp.com",
-  projectId: "results2026-7c0dd",
-  storageBucket: "results2026-7c0dd.firebasestorage.app",
-  messagingSenderId: "241421115694",
-  appId: "1:241421115694:web:96f55fd9fd1d5b18b31abf"
+var firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
 };
-
 firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore();
 
 async function login(){
-  let email=document.getElementById("email_input").value.trim().toLowerCase();
-  let password=document.getElementById("password_input").value.trim();
+  let role=document.querySelector('input[name="role"]:checked');
+  if(!role){
+    alert("اختر نوع المستخدم");
+    return;
+  }
 
-  if(!email || !password){
+  role=role.value;
+
+  let email=document.getElementById("email_input").value.trim().toLowerCase();
+  let pass=document.getElementById("password_input").value.trim();
+
+  if(!email || !pass){
     alert("أدخل اسم المستخدم وكلمة المرور");
     return;
   }
 
   let doc=await db.collection("users").doc(email).get();
   if(!doc.exists){
-    alert("اسم المستخدم غير موجود");
+    alert("المستخدم غير موجود");
     return;
   }
 
-  let data=doc.data();
-  if(data.password!==password){
+  let d=doc.data();
+  if(d.password!==pass){
     alert("كلمة المرور غير صحيحة");
     return;
   }
 
-  if(data.role!==selectedRole){
-    alert("نوع المستخدم لا يطابق الصلاحيات");
+  if(d.role!==role){
+    alert("هذا المستخدم ليس لديه صلاحية الدخول كـ "+role);
     return;
   }
 
-  localStorage.setItem("currentUserEmail", email);
-  localStorage.setItem("currentUserRole", data.role);
-  localStorage.setItem("currentUserName", data.name || "");
+  localStorage.setItem("currentUserEmail",email);
+  localStorage.setItem("currentUserName",d.name||"—");
+  localStorage.setItem("currentUserRole",d.role);
 
-  if(data.role==="superadmin") location="admin.html";
-  if(data.role==="supervisor") location="supervisor.html";
-  if(data.role==="teacher") location="teacher.html";
-  if(data.role==="manager") location="manager.html";
+  if(role==="superadmin") location="admin.html";
+  if(role==="manager") location="manager.html";
+  if(role==="principal") location="principal.html";
+  if(role==="supervisor") location="supervisor.html";
+  if(role==="counselor") location="counselor.html";
+  if(role==="teacher") location="teacher.html";
 }
 </script>
 
