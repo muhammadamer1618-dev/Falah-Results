@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>وكيل المدرسة - نظام راصد</title>
+<link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+body{
+  font-family:Calibri;
+  background:#eef2f7;
+  margin:0;
+}
+.header{
+  background:#1976d2;color:#fff;text-align:center;padding:15px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.2)
+}
+.header h1{margin:0;font-size:26px;font-weight:bold}
+.header h2{margin:5px 0 0;font-size:18px;color:#ffeb3b}
+
+.container{max-width:1200px;margin:25px auto;padding:10px}
+
+.box{
+  background:#fff;border-radius:14px;padding:20px;margin-bottom:18px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.12)
+}
+
+h3{
+  margin-top:0;color:#1976d2;font-size:19px;font-weight:bold;
+  border-right:4px solid #1976d2;padding-right:8px
+}
+
+.info-grid{
+  display:flex;flex-wrap:wrap;gap:15px
+}
+
+.info-item{
+  flex:1;
+  background:#f5f8ff;
+  border:1px solid #d3defb;
+  border-radius:10px;
+  padding:15px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  color:#1976d2;
+  min-width:200px;
+}
+
+.label{
+  font-size:15px;
+  color:#555;
+  margin-bottom:6px;
+  font-weight:bold;
+}
+
+.warning{
+  color:#d32f2f;font-weight:bold;
+}
+
+button{
+  padding:9px 15px;border:none;border-radius:8px;font-size:14px;
+  cursor:pointer;font-weight:bold;
+}
+.btn-secondary{background:#757575;color:#fff}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>نظام راصد</h1>
+  <h2>وكيل المدرسة - لوحة التقارير</h2>
+</div>
+
+<div class="container">
+
+  <!-- ===== بيانات الوكيل ===== -->
+  <div class="box">
+    <h3>بيانات المستخدم</h3>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">اسم الوكيل</div>
+        <span id="agent_name">—</span>
+      </div>
+
+      <div class="info-item">
+        <div class="label">اسم المستخدم</div>
+        <span id="agent_email">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== مؤشرات عامة ===== -->
+  <div class="box">
+    <h3>المؤشرات العامة</h3>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">عدد الطلاب</div>
+        <span id="count_students">—</span>
+      </div>
+
+      <div class="info-item">
+        <div class="label">عدد المعلمين</div>
+        <span id="count_teachers">—</span>
+      </div>
+
+      <div class="info-item">
+        <div class="label">عدد المواد المرصودة</div>
+        <span id="count_marked">—</span>
+      </div>
+
+      <div class="info-item">
+        <div class="label">إجمالي المواد المطلوبة</div>
+        <span id="count_required">—</span>
+      </div>
+
+      <div class="info-item">
+        <div class="label">نسبة الرصد العامة</div>
+        <span id="percent_all">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== المعلمون المتأخرون ===== -->
+  <div class="box">
+    <h3>المعلمون المتأخرون في رصد الدرجات</h3>
+
+    <table id="late_table" style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px">
+      <thead>
+        <tr>
+          <th style="background:#1976d2;color:#fff;padding:6px">اسم المعلم</th>
+          <th style="background:#1976d2;color:#fff;padding:6px">المادة</th>
+          <th style="background:#1976d2;color:#fff;padding:6px">الصف</th>
+          <th style="background:#1976d2;color:#fff;padding:6px">الشعبة</th>
+        </tr>
+      </thead>
+      <tbody id="late_body"></tbody>
+    </table>
+
+    <div id="late_empty" class="warning" style="display:none;margin-top:10px">
+      لا يوجد معلمون متأخرون 👌
+    </div>
+  </div>
+
+  <div class="box">
+    <button class="btn-secondary" onclick="location='index.html'">تسجيل الخروج</button>
+  </div>
+
+</div>
+
+<script>
+var firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+
+function guard(){
+  let r=localStorage.getItem("currentUserRole");
+  if(r!=="agent"){
+    alert("هذه الصفحة لوكيل المدرسة فقط");
+    location="index.html";
+  }
+}
+guard();
+
+/* بيانات الوكيل */
+document.getElementById("agent_name").innerText =
+  localStorage.getItem("currentUserName")||"—";
+document.getElementById("agent_email").innerText =
+  localStorage.getItem("currentUserEmail")||"—";
+
+
+async function loadReports(){
+  let tSnap = await db.collection("teachers").get();
+  let sSnap = await db.collection("students").get();
+
+  let teachers = [];
+  tSnap.forEach(d=>teachers.push(d.data()));
+
+  let students = [];
+  sSnap.forEach(d=>students.push(d.data()));
+
+  document.getElementById("count_teachers").innerText = teachers.length;
+  document.getElementById("count_students").innerText = students.length;
+
+  let totalRequired = 0;
+  let totalMarked = 0;
+  let lateRows = [];
+
+  teachers.forEach(t=>{
+    (t.assignments||[]).forEach(assign=>{
+      totalRequired++;
+
+      let hasMarks = students.some(st=>{
+        return st.grade===assign.grade &&
+               st.section===assign.section &&
+               st.subjects &&
+               st.subjects[assign.subject];
+      });
+
+      if(hasMarks) totalMarked++;
+      else{
+        lateRows.push(`
+          <tr>
+            <td>${t.name}</td>
+            <td>${assign.subject}</td>
+            <td>${assign.grade}</td>
+            <td>${assign.section}</td>
+          </tr>
+        `);
+      }
+    });
+  });
+
+  document.getElementById("count_required").innerText = totalRequired;
+  document.getElementById("count_marked").innerText = totalMarked;
+
+  let percent = totalRequired===0 ? 0 :
+                Math.round((totalMarked/totalRequired)*100);
+
+  document.getElementById("percent_all").innerText = percent+"%";
+
+  if(lateRows.length){
+    document.getElementById("late_body").innerHTML = lateRows.join("");
+    document.getElementById("late_empty").style.display = "none";
+  }else{
+    document.getElementById("late_empty").style.display = "block";
+  }
+}
+
+loadReports();
+</script>
+
+</body>
+</html>
