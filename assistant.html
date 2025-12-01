@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>وكيل المدرسة - نظام راصد</title>
+<link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<style>
+body{
+  font-family:Calibri;
+  background:#eef2f7;
+  margin:0;
+}
+.header{
+  background:#1976d2;
+  color:#fff;
+  text-align:center;
+  padding:15px;
+}
+.header h1{ margin:0; font-size:26px; font-weight:bold }
+.header h2{ margin:5px 0 0; font-size:18px; color:#ffeb3b }
+
+.container{
+  max-width:1100px;
+  margin:25px auto;
+  padding:10px;
+}
+
+.box{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.12);
+}
+
+h3{
+  margin:0 0 12px 0;
+  color:#1976d2;
+  font-size:20px;
+  font-weight:bold;
+  border-right:4px solid #1976d2;
+  padding-right:8px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:12px;
+  font-size:14px;
+}
+th,td{
+  border:1px solid #ccc;
+  text-align:center;
+  padding:6px;
+}
+th{ background:#1976d2; color:#fff }
+tr:nth-child(even){ background:#f9f9f9 }
+.info-item{
+  padding:10px;
+  background:#fafcff;
+  border:1px solid #d9e4ff;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+.info-label{
+  font-weight:bold;
+  margin-bottom:5px;
+  color:#333;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>نظام راصد</h1>
+  <h2>وكيل المدرسة</h2>
+</div>
+
+<div class="container">
+
+  <!-- تقرير عام -->
+  <div class="box">
+    <h3>نسبة إنجاز رصد الدرجات</h3>
+    <div class="info-item">
+      <div class="info-label">نسبة الرصد العامة</div>
+      <span id="overall_progress">—</span>
+    </div>
+  </div>
+
+  <!-- المعلمون المتأخرون -->
+  <div class="box">
+    <h3>المعلمون المتأخرون في الرصد</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>المعلم</th>
+          <th>المادة</th>
+          <th>الفصل</th>
+          <th>الرصد المكتمل</th>
+          <th>الرصد الناقص</th>
+        </tr>
+      </thead>
+      <tbody id="late_teachers_body"></tbody>
+    </table>
+  </div>
+
+  <!-- تقرير الفصول -->
+  <div class="box">
+    <h3>تقرير الفصول</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>الصف</th>
+          <th>الشعبة</th>
+          <th>إجمالي الطلاب</th>
+          <th>رصد كامل</th>
+          <th>درجات ناقصة</th>
+        </tr>
+      </thead>
+      <tbody id="class_report_body"></tbody>
+    </table>
+  </div>
+
+  <div class="box">
+    <button onclick="location='index.html'" style="padding:8px 15px;background:#555;color:#fff;border:none;border-radius:8px;">
+      تسجيل الخروج
+    </button>
+  </div>
+
+</div>
+
+<script>
+var firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+
+/* ===== Check Role ===== */
+function guard(){
+  let r=localStorage.getItem("currentUserRole");
+  if(r!=="assistant"){
+    alert("هذه الصفحة للوكيل فقط");
+    location="index.html";
+  }
+}
+guard();
+
+/* ============================
+   حساب نسبة الإنجاز العامة
+=============================*/
+async function loadOverallProgress(){
+  let snap=await db.collection("students").get();
+  let total=0, done=0;
+
+  snap.forEach(doc=>{
+    let s=doc.data();
+    let subs=s.subjects||{};
+    Object.keys(subs).forEach(sub=>{
+      total++;
+      if(subs[sub].mark!=="" && subs[sub].mark!==null) done++;
+    });
+  });
+
+  let percent = total ? ((done/total)*100).toFixed(1) : 0;
+  document.getElementById("overall_progress").innerText = percent + "%";
+}
+
+/* ============================
+   المعلمون المتأخرون
+=============================*/
+async function loadLateTeachers(){
+  let tbody=document.getElementById("late_teachers_body");
+  tbody.innerHTML="";
+
+  let teachers=await db.collection("teachers").get();
+  let students=await db.collection("students").get();
+
+  let studentList=[];
+  students.forEach(d=>studentList.push(d.data()));
+
+  teachers.forEach(tDoc=>{
+    let t=tDoc.data();
+    let assigns=t.assignments||[];
+
+    assigns.forEach(a=>{
+      let cls=studentList.filter(s=>s.grade==a.grade && s.section==a.section);
+
+      let full=cls.length;
+      let done=0;
+
+      cls.forEach(s=>{
+        let sub=s.subjects && s.subjects[a.subject];
+        if(sub && sub.mark!=="" && sub.mark!==null) done++;
+      });
+
+      let missing = full - done;
+
+      if(missing>0){
+        let tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td>${t.name}</td>
+          <td>${a.subject}</td>
+          <td>${a.grade}-${a.section}</td>
+          <td>${done}</td>
+          <td>${missing}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    });
+  });
+}
+
+/* ============================
+ تقرير الفصول
+=============================*/
+async function loadClassReport(){
+  let tbody=document.getElementById("class_report_body");
+  tbody.innerHTML="";
+
+  let students=await db.collection("students").get();
+
+  let classes={};
+
+  students.forEach(doc=>{
+    let s=doc.data();
+    let key=s.grade+"-"+s.section;
+
+    if(!classes[key]) classes[key]={total:0,done:0};
+
+    classes[key].total++;
+
+    let subs=s.subjects||{};
+    let fullDone=true;
+    Object.keys(subs).forEach(sub=>{
+      if(subs[sub].mark==="" || subs[sub].mark===null){
+        fullDone=false;
+      }
+    });
+
+    if(fullDone) classes[key].done++;
+  });
+
+  Object.keys(classes).forEach(k=>{
+    let [g,sec]=k.split("-");
+    let tr=document.createElement("tr");
+
+    tr.innerHTML=`
+      <td>${g}</td>
+      <td>${sec}</td>
+      <td>${classes[k].total}</td>
+      <td>${classes[k].done}</td>
+      <td>${classes[k].total - classes[k].done}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* Run All */
+loadOverallProgress();
+loadLateTeachers();
+loadClassReport();
+
+</script>
+
+</body>
+</html>
