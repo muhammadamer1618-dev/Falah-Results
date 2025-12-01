@@ -42,14 +42,13 @@ h2{
   font-size:32px;
   font-weight:bold;
   font-family: "Brush Script MT", cursive;
-  letter-spacing:2px;
+  letter-spacing:5px;
 }
 
 label{
   display:block;
   margin-top:10px;
   font-weight:bold;
-  font-size:15px;
 }
 
 input,select{
@@ -83,24 +82,17 @@ button:hover{
 
 .role-box{
   display:flex;
+  justify-content:space-between;
   flex-wrap:wrap;
-  gap:8px;
-  margin-top:10px
+  margin-top:10px;
 }
-.role-box label{
-  font-weight:normal;
-  font-size:14px;
-  background:#fff;
-  padding:7px 10px;
-  border-radius:8px;
-  box-shadow:0 2px 4px rgba(0,0,0,0.1);
-}
+.role-box label{font-weight:normal; width:48%; margin-bottom:8px; font-size:15px}
 
 .footer{
   text-align:center;
   margin-top:20px;
   font-size:13px;
-  color:#444
+  color:#444;
 }
 
 .badge{
@@ -110,7 +102,7 @@ button:hover{
   background:#e3f2fd;
   color:#0d47a1;
   font-size:12px;
-  margin-top:8px
+  margin-top:8px;
 }
 
 .hidden{display:none}
@@ -122,32 +114,28 @@ button:hover{
 <div class="container">
 
   <h1>نظام راصد</h1>
-  <h2>M . A . R . S</h2>
+  <h2>M.A.R.S</h2>
 
   <label>اختر نوع المستخدم</label>
-
   <div class="role-box">
     <label><input type="radio" name="role" value="superadmin" checked> مشرف عام</label>
-    <label><input type="radio" name="role" value="manager"> مدير الإشراف</label>
     <label><input type="radio" name="role" value="supervisor"> مشرف</label>
-    <label><input type="radio" name="role" value="agent"> وكيل مدرسة</label>
     <label><input type="radio" name="role" value="teacher"> معلم</label>
-
+    <label><input type="radio" name="role" value="manager"> مدير الإشراف</label>
+    <label><input type="radio" name="role" value="agent"> وكيل مدرسة</label>
   </div>
 
-  <!-- صندوق اسم المستخدم -->
+  <!-- USERNAME -->
   <div id="email_box">
     <label>اسم المستخدم</label>
     <input id="email_input" placeholder="username">
   </div>
 
-  <!-- صندوق كلمة المرور -->
+  <!-- PASSWORD -->
   <div id="password_box">
     <label>كلمة المرور</label>
     <input id="password_input" type="password" placeholder="••••••••">
   </div>
-
-
 
   <button onclick="login()">دخول</button>
 
@@ -155,6 +143,7 @@ button:hover{
     <span class="badge">تصميم محمد عامر أحمد</span>
     <div style="margin-top:5px">الإصدار 2026</div>
   </div>
+
 </div>
 
 <script>
@@ -169,37 +158,10 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore();
 
-/* إظهار وإخفاء الحقول حسب الدور */
-document.querySelectorAll('input[name="role"]').forEach(r=>{
-  r.addEventListener("change",()=>{
-    let role=document.querySelector('input[name="role"]:checked').value;
-
-    if(role==="student"){
-      document.getElementById("email_box").classList.add("hidden");
-      document.getElementById("password_box").classList.add("hidden");
-      document.getElementById("student_code_box").classList.remove("hidden");
-    } else {
-      document.getElementById("email_box").classList.remove("hidden");
-      document.getElementById("password_box").classList.remove("hidden");
-      document.getElementById("student_code_box").classList.add("hidden");
-    }
-  });
-});
-
-/* تسجيل الدخول */
+/* LOGIN */
 async function login(){
   var role=document.querySelector('input[name="role"]:checked').value;
 
-  // الطالب
-  if(role==="student"){
-    let code=document.getElementById("student_code_input").value.trim();
-    if(!code){ alert("أدخل كود الطالب"); return; }
-    localStorage.setItem("studentCode",code);
-    location="student.html";
-    return;
-  }
-
-  // المشرفين والوكلاء والمعلمين
   var email=document.getElementById("email_input").value.trim().toLowerCase();
   var password=document.getElementById("password_input").value.trim();
 
@@ -214,17 +176,17 @@ async function login(){
 
     var data=doc.data()||{};
     if(data.password!==password){ alert("كلمة المرور غير صحيحة"); return; }
-    if(data.role!==role){ alert("صلاحية الدخول غير مطابقة"); return; }
+    if(data.role!==role){ alert("نوع المستخدم لا يطابق الصلاحيات"); return; }
 
     localStorage.setItem("currentUserEmail", email);
-    localStorage.setItem("currentUserName", data.name||"—");
     localStorage.setItem("currentUserRole", data.role);
+    localStorage.setItem("currentUserName", data.name||"");
 
     if(role==="superadmin") location="admin.html";
-    if(role==="manager") location="manager.html";
     if(role==="supervisor") location="supervisor.html";
-    if(role==="agent") location="agent.html";
     if(role==="teacher") location="teacher.html";
+    if(role==="manager") location="manager.html";
+    if(role==="agent") location="agent.html";
 
   }catch(e){
     alert("خطأ أثناء تسجيل الدخول");
