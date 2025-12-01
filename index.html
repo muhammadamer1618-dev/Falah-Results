@@ -83,12 +83,17 @@ button:hover{
 
 .role-box{
   display:flex;
-  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
   margin-top:10px
 }
 .role-box label{
   font-weight:normal;
   font-size:14px;
+  background:#fff;
+  padding:7px 10px;
+  border-radius:8px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.1);
 }
 
 .footer{
@@ -120,11 +125,13 @@ button:hover{
   <h2>M . A . R . S</h2>
 
   <label>اختر نوع المستخدم</label>
+
   <div class="role-box">
     <label><input type="radio" name="role" value="superadmin" checked> مشرف عام</label>
+    <label><input type="radio" name="role" value="manager"> مدير الإشراف</label>
     <label><input type="radio" name="role" value="supervisor"> مشرف</label>
-    <label><input type="radio" name="role" value="teacher"> معلم</label>
     <label><input type="radio" name="role" value="agent"> وكيل مدرسة</label>
+    <label><input type="radio" name="role" value="teacher"> معلم</label>
     <label><input type="radio" name="role" value="student"> طالب</label>
   </div>
 
@@ -166,7 +173,7 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db=firebase.firestore();
 
-/* عرض/إخفاء الحقول بناء على نوع المستخدم */
+/* إظهار وإخفاء الحقول حسب الدور */
 document.querySelectorAll('input[name="role"]').forEach(r=>{
   r.addEventListener("change",()=>{
     let role=document.querySelector('input[name="role"]:checked').value;
@@ -183,11 +190,11 @@ document.querySelectorAll('input[name="role"]').forEach(r=>{
   });
 });
 
-/* عملية تسجيل الدخول */
+/* تسجيل الدخول */
 async function login(){
   var role=document.querySelector('input[name="role"]:checked').value;
 
-  // دخول الطالب
+  // الطالب
   if(role==="student"){
     let code=document.getElementById("student_code_input").value.trim();
     if(!code){ alert("أدخل كود الطالب"); return; }
@@ -196,7 +203,7 @@ async function login(){
     return;
   }
 
-  // دخول مستخدم (مشرف عام - مشرف - معلم - وكيل)
+  // المشرفين والوكلاء والمعلمين
   var email=document.getElementById("email_input").value.trim().toLowerCase();
   var password=document.getElementById("password_input").value.trim();
 
@@ -211,20 +218,17 @@ async function login(){
 
     var data=doc.data()||{};
     if(data.password!==password){ alert("كلمة المرور غير صحيحة"); return; }
-
-    if(data.role!==role){
-      alert("نوع المستخدم المختار لا يطابق صلاحيات الحساب");
-      return;
-    }
+    if(data.role!==role){ alert("صلاحية الدخول غير مطابقة"); return; }
 
     localStorage.setItem("currentUserEmail", email);
+    localStorage.setItem("currentUserName", data.name||"—");
     localStorage.setItem("currentUserRole", data.role);
-    localStorage.setItem("currentUserName", data.name||"");
 
     if(role==="superadmin") location="admin.html";
+    if(role==="manager") location="manager.html";
     if(role==="supervisor") location="supervisor.html";
-    if(role==="teacher") location="teacher.html";
     if(role==="agent") location="agent.html";
+    if(role==="teacher") location="teacher.html";
 
   }catch(e){
     alert("خطأ أثناء تسجيل الدخول");
