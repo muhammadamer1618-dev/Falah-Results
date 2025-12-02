@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تحليل النتائج - نظام راصد</title>
+<link href="https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  font-family:Calibri;
+  margin:0;
+  background:#eef2f7;
+}
+.header{
+  background:#1976d2;
+  color:#fff;
+  padding:15px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+}
+.container{
+  max-width:1200px;
+  margin:25px auto;
+  padding:15px;
+}
+.box{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 3px 10px rgba(0,0,0,0.12);
+}
+h3{
+  margin-top:0;
+  color:#1976d2;
+  border-right:4px solid #1976d2;
+  padding-right:8px;
+}
+label{font-weight:bold; margin-top:10px; display:block}
+select{
+  width:100%; padding:8px; border-radius:6px;
+  border:1px solid #999; margin-top:5px; font-size:15px;
+}
+button{
+  padding:8px 15px; border:none; border-radius:8px;
+  font-size:14px; cursor:pointer; font-weight:bold;
+}
+.btn-primary{background:#1976d2;color:#fff}
+.btn-secondary{background:#757575;color:#fff}
+</style>
+</head>
+
+<body>
+
+<div class="header">تحليل النتائج</div>
+
+<div class="container">
+
+  <div class="box">
+    <h3>تحديد الفصول والمادة</h3>
+
+    <div style="display:flex; gap:15px; flex-wrap:wrap">
+
+      <div style="flex:1">
+        <label>الصف 1</label>
+        <select id="g1"></select>
+        <label>الشعبة</label>
+        <select id="s1"></select>
+      </div>
+
+      <div style="flex:1">
+        <label>الصف 2</label>
+        <select id="g2"></select>
+        <label>الشعبة</label>
+        <select id="s2"></select>
+      </div>
+
+      <div style="flex:1">
+        <label>الصف 3 (اختياري)</label>
+        <select id="g3"></select>
+        <label>الشعبة</label>
+        <select id="s3"></select>
+      </div>
+
+      <div style="flex:1">
+        <label>المادة</label>
+        <select id="sub"></select>
+      </div>
+
+    </div>
+
+    <button class="btn-primary" style="margin-top:15px" onclick="compare()">عرض النتائج</button>
+    <button class="btn-secondary" style="margin-top:15px" onclick="window.print()">طباعة</button>
+  </div>
+
+  <div class="box">
+    <h3>الرسم البياني</h3>
+    <canvas id="chart" height="140"></canvas>
+  </div>
+
+</div>
+
+<script>
+/* Firebase */
+var firebaseConfig={
+  apiKey:"AIzaSyAfgSV-6_IMkXncgPWxY69omKfvFtGakgk",
+  authDomain:"results2026-7c0dd.firebaseapp.com",
+  projectId:"results2026-7c0dd",
+  storageBucket:"results2026-7c0dd.firebasestorage.app",
+  messagingSenderId:"241421115694",
+  appId:"1:241421115694:web:96f55fd9fd1d5b18b31abf"
+};
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
+
+/* القوائم */
+const grades=[
+"1 ابتدائي","2 ابتدائي","3 ابتدائي","4 ابتدائي","5 ابتدائي","6 ابتدائي",
+"1 متوسط","2 متوسط","3 متوسط",
+"1 ثانوي","2 ثانوي","3 ثانوي"
+];
+const sections=["أ","ب","ج","د"];
+
+function fillSelectors(){
+  ["g1","g2","g3"].forEach(id=>{
+    let g=document.getElementById(id);
+    grades.forEach(x=>{
+      let o=document.createElement("option");
+      o.value=x; o.textContent=x; g.appendChild(o);
+    });
+  });
+
+  ["s1","s2","s3"].forEach(id=>{
+    let s=document.getElementById(id);
+    sections.forEach(x=>{
+      let o=document.createElement("option");
+      o.value=x; o.textContent=x; s.appendChild(o);
+    });
+  });
+
+  loadSubjects();
+}
+
+async function loadSubjects(){
+  let sub=document.getElementById("sub");
+  let docs=await db.collection("settings").get();
+  let set=new Set();
+
+  docs.forEach(d=>{
+    (d.data().subjects||[]).forEach(s=>set.add(s.name));
+  });
+
+  set.forEach(x=>{
+    let o=document.createElement("option");
+    o.value=x; o.textContent=x;
+    sub.appendChild(o);
+  });
+}
+
+function category(m,f){
+  if(!f) return "—";
+  let p=(m/f)*100;
+  if(p<50)return"دراسة حالة";
+  if(p<65)return"أولى بالرعاية";
+  if(p<75)return"جيد";
+  if(p<85)return"جيد جدًا";
+  if(p<100)return"ممتاز";
+  return"الدرجة النهائية";
+}
+
+async function loadClass(g,s,sub){
+  let q=db.collection("students").where("grade","==",g).where("section","==",s);
+  let snap=await q.get();
+
+  let stats={
+    "دراسة حالة":0,
+    "أولى بالرعاية":0,
+    "جيد":0,
+    "جيد جدًا":0,
+    "ممتاز":0,
+    "الدرجة النهائية":0
+  };
+
+  snap.forEach(d=>{
+    let st=d.data();
+    let sb=st.subjects && st.subjects[sub];
+    if(!sb)return;
+    let c=category(sb.mark,sb.fullMark);
+    stats[c]++;
+  });
+
+  return stats;
+}
+
+let chart=null;
+
+async function compare(){
+  let g1=document.getElementById("g1").value;
+  let s1=document.getElementById("s1").value;
+
+  let g2=document.getElementById("g2").value;
+  let s2=document.getElementById("s2").value;
+
+  let g3=document.getElementById("g3").value;
+  let s3=document.getElementById("s3").value;
+
+  let sub=document.getElementById("sub").value;
+
+  let d1=await loadClass(g1,s1,sub);
+  let d2=await loadClass(g2,s2,sub);
+  let d3=null;
+
+  if(g3 && s3){
+    d3=await loadClass(g3,s3,sub);
+  }
+
+  draw(d1,d2,d3,`${g1}-${s1}`,`${g2}-${s2}`,g3?`${g3}-${s3}`:null);
+}
+
+function draw(d1,d2,d3,l1,l2,l3){
+  if(chart) chart.destroy();
+
+  let ctx=document.getElementById("chart").getContext("2d");
+
+  chart=new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["دراسة حالة","أولى بالرعاية","جيد","جيد جدًا","ممتاز","الدرجة النهائية"],
+      datasets:[
+        { label:l1, data:Object.values(d1), backgroundColor:"rgba(54,162,235,0.75)" },
+        { label:l2, data:Object.values(d2), backgroundColor:"rgba(255,99,132,0.75)" }
+      ].concat(
+        d3?[{ label:l3, data:Object.values(d3), backgroundColor:"rgba(255,159,64,0.75)" }]:[]
+      )
+    },
+    options:{
+      responsive:true,
+      scales:{ y:{ beginAtZero:true } }
+    }
+  });
+}
+
+fillSelectors();
+</script>
+
+</body>
+</html>
